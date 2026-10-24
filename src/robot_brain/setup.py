@@ -24,6 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'mission_coordinator_node = robot_brain.mission_coordinator_node:main',
+            'pick_place_manager_node = robot_brain.pick_place_manager_node:main',
         ],
     },
 )

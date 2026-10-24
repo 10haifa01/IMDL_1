@@ -24,6 +24,9 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'object_detector_node = robot_perception.object_detector_node:main',
+            'color_analyzer_node = robot_perception.color_analyzer_node:main',
+            'sensor_fusion_node = robot_perception.sensor_fusion_node:main',
         ],
     },
 )

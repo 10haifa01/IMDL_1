@@ -24,6 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'waypoint_navigator_node = robot_navigation.waypoint_navigator_node:main',
+            'obstacle_avoidance_node = robot_navigation.obstacle_avoidance_node:main',
         ],
     },
 )

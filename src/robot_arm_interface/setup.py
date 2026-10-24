@@ -24,6 +24,10 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'arduino_serial_node = robot_arm_interface.arduino_serial_node:main',
+            'arm_kinematics_node = robot_arm_interface.arm_kinematics_node:main',
+            'arm_trajectory_node = robot_arm_interface.arm_trajectory_node:main',
+            'beacon_control_node = robot_arm_interface.beacon_control_node:main',
         ],
     },
 )
