@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <world name="default">
+    <!-- A global light source -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <!-- A ground plane -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+        <!-- Obstacle 1: red box -->
+    <model name="box_obstacle">
+      <static>true</static>
+      <pose>1.5 0.5 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.5 0.5 0.5</size></box></geometry></collision>
+        <visual name="visual">
+          <geometry><box><size>0.5 0.5 0.5</size></box></geometry>
+          <material><ambient>0.8 0.1 0.1 1</ambient><diffuse>0.8 0.1 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Obstacle 2: blue cylinder -->
+    <model name="cylinder_obstacle">
+      <static>true</static>
+      <pose>-1.0 1.5 0.4 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><cylinder><radius>0.25</radius><length>0.8</length></cylinder></geometry></collision>
+        <visual name="visual">
+          <geometry><cylinder><radius>0.25</radius><length>0.8</length></cylinder></geometry>
+          <material><ambient>0.1 0.1 0.8 1</ambient><diffuse>0.1 0.1 0.8 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Optional but recommended for SLAM: 6x6 m room -->
+    <model name="walls">
+      <static>true</static>
+      <link name="link">
+        <collision name="n"><pose>0 3 0.4 0 0 0</pose><geometry><box><size>6.1 0.1 0.8</size></box></geometry></collision>
+        <visual name="n_v"><pose>0 3 0.4 0 0 0</pose><geometry><box><size>6.1 0.1 0.8</size></box></geometry></visual>
+        <collision name="s"><pose>0 -3 0.4 0 0 0</pose><geometry><box><size>6.1 0.1 0.8</size></box></geometry></collision>
+        <visual name="s_v"><pose>0 -3 0.4 0 0 0</pose><geometry><box><size>6.1 0.1 0.8</size></box></geometry></visual>
+        <collision name="e"><pose>3 0 0.4 0 0 0</pose><geometry><box><size>0.1 6.1 0.8</size></box></geometry></collision>
+        <visual name="e_v"><pose>3 0 0.4 0 0 0</pose><geometry><box><size>0.1 6.1 0.8</size></box></geometry></visual>
+        <collision name="w"><pose>-3 0 0.4 0 0 0</pose><geometry><box><size>0.1 6.1 0.8</size></box></geometry></collision>
+        <visual name="w_v"><pose>-3 0 0.4 0 0 0</pose><geometry><box><size>0.1 6.1 0.8</size></box></geometry></visual>
+      </link>
+    </model>
+  </world>
+</sdf>
