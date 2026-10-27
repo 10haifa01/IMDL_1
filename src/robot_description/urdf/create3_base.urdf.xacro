@@ -1,5 +1,76 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="create3_base">
-  <!-- Pulls directly from the official ROS 2 humble open-source system package -->
+  
+  <!-- Base Official Create 3 Model -->
   <xacro:include filename="$(find irobot_create_description)/urdf/create3.urdf.xacro" />
+
+  <!-- RPLIDAR C1 Link -->
+  <link name="rplidar_c1_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.038" length="0.04"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.038" length="0.04"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.11"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="0.00005" ixy="0" ixz="0" iyy="0.00005" iyz="0" izz="0.00008"/>
+    </inertial>
+  </link>
+
+  <!-- Mount LiDAR on top of base_link -->
+  <joint name="rplidar_c1_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="rplidar_c1_link"/>
+    <origin xyz="0.0 0.0 0.14" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Gazebo Plugin for RPLIDAR C1 -->
+  <gazebo reference="rplidar_c1_link">
+    <material>Gazebo/Black</material>
+    <sensor type="ray" name="rplidar_c1_sensor">
+      <pose>0 0 0 0 0 0</pose>
+      <always_on>true</always_on>
+      <update_rate>10</update_rate>
+      <visualize>false</visualize> <!-- Set to false to hide visual rays -->
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>360</samples>
+            <resolution>1</resolution>
+            <min_angle>-3.14159265</min_angle>
+            <max_angle>3.14159265</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.05</min>
+          <max>12.0</max>
+          <resolution>0.01</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </ray>
+      <plugin name="rplidar_c1_plugin" filename="libgazebo_ros_ray_sensor.so">
+        <ros>
+          <remapping>~/out:=/scan</remapping>
+        </ros>
+        <output_type>sensor_msgs/LaserScan</output_type>
+        <frame_name>rplidar_c1_link</frame_name>
+      </plugin>
+    </sensor>
+  </gazebo>
+
 </robot>
