@@ -64,6 +64,7 @@ def generate_launch_description():
         package='controller_manager',
         executable='spawner',
         arguments=['diffdrive_controller', '--controller-manager-timeout', '120'],
+        parameters=[{'use_sim_time': True}],
         output='screen'
     )
 
@@ -71,6 +72,7 @@ def generate_launch_description():
         package='controller_manager',
         executable='spawner',
         arguments=['joint_state_broadcaster', '--controller-manager-timeout', '120'],
+        parameters=[{'use_sim_time': True}],
         output='screen'
     )
 

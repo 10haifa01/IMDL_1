@@ -73,4 +73,17 @@
     </sensor>
   </gazebo>
 
+ <!--
+  # TODO: make sure this isn't messing anything up!!
+  <gazebo>
+    <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+      <parameters>$(find robot_bringup)/config/diffdrive_controller.yaml</parameters>
+      <ros>
+        <argument>ADD DOUBLE HYPHENros-args</argument>
+        <argument>-p</argument>
+        <argument>use_sim_time:=true</argument>
+      </ros>
+    </plugin>
+  </gazebo>  -->
+
 </robot>
