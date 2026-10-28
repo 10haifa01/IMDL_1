@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Converts mm to m (ROS always uses metres) -->
+  <xacro:property name="mm" value="0.001"/>
+
+  <!-- ===== MY MEASUREMENTS FROM FUSION (mm, from base_link) ===== -->
+  <xacro:property name="lidar_x" value="0.497"/>    <!-- TODO -->
+  <xacro:property name="lidar_z" value="229.13"/>    <!-- TODO: stand top + scan-plane height -->
+  <xacro:property name="cam_x"   value="205.697"/>    <!-- WAS value="208.697" change (-3mm) to 205.697 -->
+  <xacro:property name="cam_y"   value="0.0"/>    <!-- WAS value="47.50" change to 0.0 -->
+  <xacro:property name="cam_z"   value="63.83"/>    <!-- WAS value="78.33" (-14.5mm) change to 63.83 -->
+  <xacro:property name="cam_tilt_deg" value="0.0"/>  <!-- TODO: + = tilted down -->
+
+  <!-- Mounts -->
+  <link name="lidar_camera_mounts_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robot_description/meshes/lidar_camera_mounts.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="mount_grey"><color rgba="0.4 0.4 0.4 1.0"/></material>
+    </visual>
+  </link>
+  <joint name="lidar_camera_mounts_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="lidar_camera_mounts_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- LIDAR: yaw 180 deg according to documentation -->
+  <link name="lidar_link"/>
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="lidar_link"/>
+    <origin xyz="${lidar_x*mm} 0 ${lidar_z*mm}" rpy="0 0 ${pi}"/>
+  </joint>
+
+  <!-- Camera: official D455 model attached at the tripod hole -->
+  <xacro:arg name="sim" default="false"/>
+  <xacro:include filename="$(find realsense2_description)/urdf/_d455.urdf.xacro"/>
+  <xacro:sensor_d455 parent="base_link" name="camera" use_nominal_extrinsics="$(arg sim)">
+    <origin xyz="${cam_x*mm} ${cam_y*mm} ${cam_z*mm}" rpy="0 ${cam_tilt_deg*pi/180} 0"/>
+  </xacro:sensor_d455>
+
+</robot>
