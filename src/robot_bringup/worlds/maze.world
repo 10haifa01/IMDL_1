@@ -8,48 +8,55 @@
       <uri>model://ground_plane</uri>
     </include>
 
-    <!-- Obstacle 1: red box -->
-    <model name="box_obstacle">
+    <!-- Obstacle 1: Red cylinder (20 cm diameter, radius 0.10m) -->
+    <model name="cylinder_obstacle_1">
       <static>true</static>
-      <pose>1.5 0.5 0.25 0 0 0</pose>
+      <pose>0.35 0.25 0.2 0 0 0</pose>
       <link name="link">
         <collision name="collision">
-          <geometry><box><size>0.5 0.5 0.5</size></box></geometry>
+          <geometry><cylinder><radius>0.10</radius><length>0.4</length></cylinder></geometry>
         </collision>
         <visual name="visual">
-          <geometry><box><size>0.5 0.5 0.5</size></box></geometry>
+          <geometry><cylinder><radius>0.10</radius><length>0.4</length></cylinder></geometry>
           <material><ambient>0.8 0.1 0.1 1</ambient><diffuse>0.8 0.1 0.1 1</diffuse></material>
         </visual>
       </link>
     </model>
 
-    <!-- Obstacle 2: blue cylinder -->
-    <model name="cylinder_obstacle">
+    <!-- Obstacle 2: Blue cylinder (20 cm diameter, radius 0.10m) -->
+    <model name="cylinder_obstacle_2">
       <static>true</static>
-      <pose>-1.0 1.5 0.4 0 0 0</pose>
+      <pose>-0.35 -0.25 0.2 0 0 0</pose>
       <link name="link">
         <collision name="collision">
-          <geometry><cylinder><radius>0.25</radius><length>0.8</length></cylinder></geometry>
+          <geometry><cylinder><radius>0.10</radius><length>0.4</length></cylinder></geometry>
         </collision>
         <visual name="visual">
-          <geometry><cylinder><radius>0.25</radius><length>0.8</length></cylinder></geometry>
+          <geometry><cylinder><radius>0.10</radius><length>0.4</length></cylinder></geometry>
           <material><ambient>0.1 0.1 0.8 1</ambient><diffuse>0.1 0.1 0.8 1</diffuse></material>
         </visual>
       </link>
     </model>
 
-    <!-- 6x6 m room walls -->
+    <!-- 1.65x1.65 m INTERIOR room walls -->
     <model name="walls">
       <static>true</static>
       <link name="link">
-        <collision name="n"><pose>0 3 0.4 0 0 0</pose><geometry><box><size>6.1 0.1 0.8</size></box></geometry></collision>
-        <visual name="n_v"><pose>0 3 0.4 0 0 0</pose><geometry><box><size>6.1 0.1 0.8</size></box></geometry></visual>
-        <collision name="s"><pose>0 -3 0.4 0 0 0</pose><geometry><box><size>6.1 0.1 0.8</size></box></geometry></collision>
-        <visual name="s_v"><pose>0 -3 0.4 0 0 0</pose><geometry><box><size>6.1 0.1 0.8</size></box></geometry></visual>
-        <collision name="e"><pose>3 0 0.4 0 0 0</pose><geometry><box><size>0.1 6.1 0.8</size></box></geometry></collision>
-        <visual name="e_v"><pose>3 0 0.4 0 0 0</pose><geometry><box><size>0.1 6.1 0.8</size></box></geometry></visual>
-        <collision name="w"><pose>-3 0 0.4 0 0 0</pose><geometry><box><size>0.1 6.1 0.8</size></box></geometry></collision>
-        <visual name="w_v"><pose>-3 0 0.4 0 0 0</pose><geometry><box><size>0.1 6.1 0.8</size></box></geometry></visual>
+        <!-- North Wall -->
+        <collision name="n"><pose>0 0.875 0.4 0 0 0</pose><geometry><box><size>1.85 0.1 0.8</size></box></geometry></collision>
+        <visual name="n_v"><pose>0 0.875 0.4 0 0 0</pose><geometry><box><size>1.85 0.1 0.8</size></box></geometry></visual>
+        
+        <!-- South Wall -->
+        <collision name="s"><pose>0 -0.875 0.4 0 0 0</pose><geometry><box><size>1.85 0.1 0.8</size></box></geometry></collision>
+        <visual name="s_v"><pose>0 -0.875 0.4 0 0 0</pose><geometry><box><size>1.85 0.1 0.8</size></box></geometry></visual>
+        
+        <!-- East Wall -->
+        <collision name="e"><pose>0.875 0 0.4 0 0 0</pose><geometry><box><size>0.1 1.85 0.8</size></box></geometry></collision>
+        <visual name="e_v"><pose>0.875 0 0.4 0 0 0</pose><geometry><box><size>0.1 1.85 0.8</size></box></geometry></visual>
+        
+        <!-- West Wall -->
+        <collision name="w"><pose>-0.875 0 0.4 0 0 0</pose><geometry><box><size>0.1 1.85 0.8</size></box></geometry></collision>
+        <visual name="w_v"><pose>-0.875 0 0.4 0 0 0</pose><geometry><box><size>0.1 1.85 0.8</size></box></geometry></visual>
       </link>
     </model>
   </world>
