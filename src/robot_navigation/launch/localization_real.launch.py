@@ -20,6 +20,11 @@ def generate_launch_description():
                 'use_sim_time': False,
                 'map_file_name': map_file_path
             }
+        ],
+        remappings=[
+            ('/tf', '/robot1_ws/tf'),
+            ('/tf_static', '/robot1_ws/tf_static'),
+            ('/odom', '/robot1_ws/odom')
         ]
     )
 

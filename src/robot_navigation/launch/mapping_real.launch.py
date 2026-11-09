@@ -24,7 +24,12 @@ def generate_launch_description():
         executable='async_slam_toolbox_node',
         name='slam_toolbox',
         output='screen',
-        parameters=[slam_params_file]
+        parameters=[slam_params_file],
+        remappings=[
+            ('/tf', '/robot1_ws/tf'),
+            ('/tf_static', '/robot1_ws/tf_static'),
+            ('/odom', '/robot1_ws/odom')
+        ]
     )
 
     return LaunchDescription([

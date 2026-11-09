@@ -22,7 +22,11 @@ def generate_launch_description():
         parameters=[{
             'robot_description': robot_description_param,
             'use_sim_time': False
-        }]
+        }],
+        remappings=[
+            ('/tf', '/robot1_ws/tf'),
+            ('/tf_static', '/robot1_ws/tf_static')
+        ]
     )
 
     # 2. RPLIDAR C1 Driver Node
