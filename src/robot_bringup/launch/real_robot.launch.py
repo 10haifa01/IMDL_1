@@ -6,6 +6,7 @@ from launch_ros.parameter_descriptions import ParameterValue
 import xacro
 
 def generate_launch_description():
+    # Paths
     pkg_robot_description = get_package_share_directory('robot_description')
     xacro_file = os.path.join(pkg_robot_description, 'urdf', 'create3_sensors.urdf.xacro')
 
@@ -13,7 +14,7 @@ def generate_launch_description():
     robot_description_config = xacro.process_file(xacro_file, mappings={'sim': 'false'}).toxml()
     robot_description_param = ParameterValue(robot_description_config, value_type=str)
 
-    # 1. Robot State Publisher: Publishes base_link -> lidar_link TF (with 180° yaw rotation) & camera links
+    # Robot state publisher
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -29,7 +30,7 @@ def generate_launch_description():
         ]
     )
 
-    # 2. RPLIDAR C1 Driver Node
+    # Lidar driver
     lidar_driver_node = Node(
         package='sllidar_ros2',
         executable='sllidar_node',
@@ -38,8 +39,8 @@ def generate_launch_description():
         parameters=[{
             'channel_type': 'serial',
             'serial_port': '/dev/ttyUSB0',
-            'serial_baudrate': 460800,     # Standard RPLIDAR C1 baudrate
-            'frame_id': 'lidar_link',      # Matches URDF link name
+            'serial_baudrate': 460800,
+            'frame_id': 'lidar_link',
             'angle_compensate': True,
         }],
         remappings=[('scan', '/scan')]

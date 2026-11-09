@@ -6,19 +6,19 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
 def generate_launch_description():
+    # Paths
     pkg_robot_navigation = get_package_share_directory('robot_navigation')
     pkg_nav2_bringup = get_package_share_directory('nav2_bringup')
-
     nav2_params_file = os.path.join(pkg_robot_navigation, 'config', 'nav2_params.yaml')
 
-    # 1. Include slam_toolbox localization launch
+    # Include slam_toolbox localization launch
     localization_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_robot_navigation, 'launch', 'localization.launch.py')
         )
     )
 
-    # 2. Include standard Nav2 navigation stack
+    # Include standard Nav2 navigation stack
     nav2_navigation_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_nav2_bringup, 'launch', 'navigation_launch.py')
@@ -30,7 +30,7 @@ def generate_launch_description():
         }.items()
     )
 
-    # 3. Relay /cmd_vel -> /diffdrive_controller/cmd_vel_unstamped
+    # Relay /cmd_vel -> /diffdrive_controller/cmd_vel_unstamped
     cmd_vel_relay_node = Node(
         package='topic_tools',
         executable='relay',
@@ -39,7 +39,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    # 4. Launch RViz
+    # Launch RViz
     rviz_node = Node(
         package='rviz2',
         executable='rviz2',

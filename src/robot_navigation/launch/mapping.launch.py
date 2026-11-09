@@ -6,20 +6,21 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
 def generate_launch_description():
+    # Paths
     pkg_robot_bringup = get_package_share_directory('robot_bringup')
     pkg_robot_navigation = get_package_share_directory('robot_navigation')
     pkg_nav2_bringup = get_package_share_directory('nav2_bringup')
 
     slam_params_file = os.path.join(pkg_robot_navigation, 'config', 'slam_params_mapping.yaml')
 
-    # 1. Bring up Gazebo simulation base (World, Robot, Controllers, Dock)
+    # Bring up Gazebo simulation
     sim_base_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_robot_bringup, 'launch', 'sim_base.launch.py')
         )
     )
 
-    # 2. Async SLAM Toolbox in Mapping Mode
+    # Async SLAM Toolbox in Mapping Mode
     slam_toolbox_mapping_node = Node(
         package='slam_toolbox',
         executable='async_slam_toolbox_node',
@@ -31,7 +32,7 @@ def generate_launch_description():
         ]
     )
 
-    # 3. Launch RViz for visualization
+    # Launch RViz for visualization
     rviz_node = Node(
         package='rviz2',
         executable='rviz2',

@@ -6,8 +6,7 @@
 
   <xacro:property name="mm" value="0.001"/>
 
-  <!-- ===== MEASUREMENTS FROM FUSION (mm, from base_link) ===== -->
-  <!-- Note: Check if 497.0 mm is correct or relative to a sub-frame -->
+  <!-- MEASUREMENTS FROM FUSION -->
   <xacro:property name="lidar_x" value="0.497"/>    
   <xacro:property name="lidar_z" value="199.83"/>   
   <xacro:property name="cam_x"   value="205.697"/>    

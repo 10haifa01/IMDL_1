@@ -10,27 +10,25 @@ from launch_ros.parameter_descriptions import ParameterValue
 import xacro
 
 def generate_launch_description():
+    # Paths
     pkg_robot_description = get_package_share_directory('robot_description')
     pkg_robot_bringup = get_package_share_directory('robot_bringup')
     pkg_gazebo_ros = get_package_share_directory('gazebo_ros')
     pkg_create3_description = get_package_share_directory('irobot_create_description')
-
     world_path = os.path.join(pkg_robot_bringup, 'worlds', 'maze.world')
     xacro_file = os.path.join(pkg_robot_description, 'urdf', 'create3_sensors.urdf.xacro')
     
-    # 1. Robot Description (Custom Sensors + Create 3)
+    # Robot description
     robot_description_config = xacro.process_file(xacro_file, mappings={'sim': 'true'}).toxml()
     robot_description_param = ParameterValue(robot_description_config, value_type=str)
 
-    # 2. Dock Description (Strip <collision> tags to make it non-solid)
+    # Dock description (collision removed)
     dock_xacro = os.path.join(pkg_create3_description, 'urdf', 'dock', 'standard_dock.urdf.xacro')
     dock_raw_xml = xacro.process_file(dock_xacro, mappings={'gazebo': 'classic'}).toxml()
-    
-    # Remove all collision tags from the dock XML
     dock_no_collision_xml = re.sub(r'<collision>.*?</collision>', '', dock_raw_xml, flags=re.DOTALL)
     dock_description_param = ParameterValue(dock_no_collision_xml, value_type=str)
 
-    # Gazebo Model Paths
+    # Gazebo model paths
     desc_model_path = str(Path(pkg_robot_description).parent.resolve())
     create3_model_path = str(Path(pkg_create3_description).parent.resolve())
     existing = os.environ.get('GAZEBO_MODEL_PATH', '')
@@ -38,7 +36,7 @@ def generate_launch_description():
     set_model_path = SetEnvironmentVariable('GAZEBO_MODEL_PATH', gazebo_model_path)
     no_online_models = SetEnvironmentVariable('GAZEBO_MODEL_DATABASE_URI', '')
 
-    # Robot State Publisher
+    # Robot state publisher
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -49,7 +47,7 @@ def generate_launch_description():
         }]
     )
 
-    # Joint State Publisher
+    # Joint state publisher
     joint_state_publisher_node = Node(
         package='joint_state_publisher',
         executable='joint_state_publisher',
@@ -60,7 +58,7 @@ def generate_launch_description():
         }]
     )
 
-    # Gazebo World
+    # Gazebo world
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_gazebo_ros, 'launch', 'gazebo.launch.py')
@@ -71,7 +69,7 @@ def generate_launch_description():
         }.items()
     )
 
-    # Spawn Robot
+    # Spawn robot
     spawn_entity = Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
@@ -80,7 +78,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Spawners for Controllers
+    # Spawners for controllers
     diffdrive_spawner = Node(
         package='controller_manager',
         executable='spawner',
@@ -89,6 +87,7 @@ def generate_launch_description():
         output='screen'
     )
 
+    # Joint state broadcaster
     joint_state_broadcaster_spawner = Node(
         package='controller_manager',
         executable='spawner',
@@ -97,7 +96,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Dock State Publisher
+    # Dock state publisher
     dock_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -110,7 +109,7 @@ def generate_launch_description():
         remappings=[('robot_description', 'standard_dock_description')]
     )
 
-    # Spawn Non-Colliding Dock Entity
+    # Spawn non-colliding dock entity
     spawn_dock = Node(
         package='gazebo_ros',
         executable='spawn_entity.py',

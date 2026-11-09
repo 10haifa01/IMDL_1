@@ -5,6 +5,7 @@ from launch.actions import SetEnvironmentVariable
 from launch_ros.actions import Node
 
 def generate_launch_description():
+    # Paths
     pkg_robot_bringup = get_package_share_directory('robot_bringup')
     rviz_config_path = os.path.join(pkg_robot_bringup, 'config', 'view_robot.rviz')
 
