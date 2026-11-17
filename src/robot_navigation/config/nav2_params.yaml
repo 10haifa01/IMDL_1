@@ -33,7 +33,7 @@ controller_server:
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
-      min_vel_x: 0.0
+      min_vel_x: -0.15
       min_vel_y: 0.0
       max_vel_x: 0.26
       max_vel_y: 0.0
@@ -76,9 +76,11 @@ global_costmap:
       global_frame: map
       robot_base_frame: base_link
       use_sim_time: true
-      robot_radius: 0.22
+      # 0.17m circle body + front camera rectangle extending to x = 0.22m (width 0.14m)
+      footprint: "[ [0.22, 0.07], [0.155, 0.07], [0.12, 0.12], [0.0, 0.17], [-0.12, 0.12], [-0.17, 0.0], [-0.12, -0.12], [0.0, -0.17], [0.12, -0.12], [0.155, -0.07], [0.22, -0.07] ]"
+      footprint_padding: 0.01
       resolution: 0.02
-      track_unknown_space: false
+      track_unknown_space: true
       always_send_full_costmap: true
       plugins: ["static_layer", "inflation_layer"]
       static_layer:
@@ -87,8 +89,8 @@ global_costmap:
         subscribe_to_updates: True
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.5
-        inflation_radius: 0.125
+        cost_scaling_factor: 8.0
+        inflation_radius: 0.28
         inflate_unknown: false
 
 local_costmap:
@@ -103,8 +105,14 @@ local_costmap:
       width: 3
       height: 3
       resolution: 0.02
-      robot_radius: 0.22
-      plugins: ["obstacle_layer", "inflation_layer"]
+      # 0.17m circle body + front camera rectangle extending to x = 0.22m (width 0.14m)
+      footprint: "[ [0.22, 0.07], [0.155, 0.07], [0.12, 0.12], [0.0, 0.17], [-0.12, 0.12], [-0.17, 0.0], [-0.12, -0.12], [0.0, -0.17], [0.12, -0.12], [0.155, -0.07], [0.22, -0.07] ]"
+      footprint_padding: 0.01
+      track_unknown_space: false
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
@@ -118,8 +126,29 @@ local_costmap:
           raytrace_max_range: 3.0
           raytrace_min_range: 0.0
           obstacle_max_range: 2.5
-          obstacle_min_range: 0.0
+          obstacle_min_range: 0.05
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.5
-        inflation_radius: 0.125
+        cost_scaling_factor: 8.0
+        inflation_radius: 0.28
+
+behavior_server:
+  ros__parameters:
+    costmap_topic: local_costmap/costmap_raw
+    footprint_topic: local_costmap/published_footprint
+    cycle_frequency: 10.0
+    behavior_plugins: ["spin", "backup", "wait"]
+    spin:
+      plugin: "nav2_behaviors/Spin"
+    backup:
+      plugin: "nav2_behaviors/BackUp"
+    wait:
+      plugin: "nav2_behaviors/Wait"
+    global_frame: odom
+    robot_base_frame: base_link
+    transform_tolerance: 0.2
+    use_sim_time: true
+    simulate_ahead_time: 2.0
+    max_rotational_vel: 0.6
+    min_rotational_vel: 0.2
+    rotational_acc_lim: 3.2

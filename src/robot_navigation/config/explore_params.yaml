@@ -1,0 +1,14 @@
+explore_node:
+  ros__parameters:
+    robot_base_frame: base_link
+    costmap_topic: /map
+    costmap_updates_topic: /map_updates
+    visualize: true              # Publishes frontier markers on /explore/frontiers
+    planner_frequency: 1.0      # Re-evaluates frontiers every second
+    progress_timeout: 15.0       # Blacklists unreachable frontiers after 15s
+    potential_scale: 3.0         # Weight favoring closer frontiers
+    orientation_scale: 0.0
+    gain_scale: 1.0              # Weight favoring larger unknown areas
+    transform_tolerance: 0.3
+    min_frontier_size: 0.3      # Minimum frontier length (meters) to pursue
+    return_to_init: false        # Stay in place once exploration finishes
