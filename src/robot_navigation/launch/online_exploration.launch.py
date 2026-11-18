@@ -68,10 +68,19 @@ def generate_launch_description():
         output='screen'
     )
 
+    post_exploration_node = Node(
+        package='robot_brain',
+        executable='post_exploration_sweeper',
+        name='post_exploration_sweeper',
+        output='screen',
+        parameters=[{'use_sim_time': True}]
+    )
+
     return LaunchDescription([
         slam_toolbox_node,
         nav2_navigation_launch,
         cmd_vel_relay_node,
         explore_node,
-        rviz_node
+        rviz_node,
+        post_exploration_node
     ])

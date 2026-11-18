@@ -10,5 +10,5 @@ explore_node:
     orientation_scale: 0.0
     gain_scale: 1.0              # Weight favoring larger unknown areas
     transform_tolerance: 0.3
-    min_frontier_size: 0.3      # Minimum frontier length (meters) to pursue
+    min_frontier_size: 0.12      # Minimum frontier length (meters) to pursue
     return_to_init: false        # Stay in place once exploration finishes

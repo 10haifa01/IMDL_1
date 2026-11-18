@@ -16,10 +16,10 @@ slam_toolbox:
 
     # Graph Node Spacing
     minimum_travel_distance: 0.10
-    minimum_travel_heading: 0.10
+    minimum_travel_heading: 0.05
 
     # Loop Closure
     do_loop_closing: true
-    loop_search_maximum_distance: 4.0
+    loop_search_maximum_distance: 1.5
 
     transform_publish_period: 0.02

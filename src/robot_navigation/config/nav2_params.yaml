@@ -78,7 +78,7 @@ global_costmap:
       use_sim_time: true
       # 0.17m circle body + front camera rectangle extending to x = 0.22m (width 0.14m)
       footprint: "[ [0.22, 0.07], [0.155, 0.07], [0.12, 0.12], [0.0, 0.17], [-0.12, 0.12], [-0.17, 0.0], [-0.12, -0.12], [0.0, -0.17], [0.12, -0.12], [0.155, -0.07], [0.22, -0.07] ]"
-      footprint_padding: 0.01
+      footprint_padding: 0.02
       resolution: 0.02
       track_unknown_space: true
       always_send_full_costmap: true
@@ -90,7 +90,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 8.0
-        inflation_radius: 0.28
+        inflation_radius: 0.25
         inflate_unknown: false
 
 local_costmap:
@@ -107,7 +107,7 @@ local_costmap:
       resolution: 0.02
       # 0.17m circle body + front camera rectangle extending to x = 0.22m (width 0.14m)
       footprint: "[ [0.22, 0.07], [0.155, 0.07], [0.12, 0.12], [0.0, 0.17], [-0.12, 0.12], [-0.17, 0.0], [-0.12, -0.12], [0.0, -0.17], [0.12, -0.12], [0.155, -0.07], [0.22, -0.07] ]"
-      footprint_padding: 0.01
+      footprint_padding: 0.02
       track_unknown_space: false
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       static_layer:
@@ -130,7 +130,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 8.0
-        inflation_radius: 0.28
+        inflation_radius: 0.25
 
 behavior_server:
   ros__parameters:
@@ -149,6 +149,6 @@ behavior_server:
     transform_tolerance: 0.2
     use_sim_time: true
     simulate_ahead_time: 2.0
-    max_rotational_vel: 0.6
-    min_rotational_vel: 0.2
+    max_rotational_vel: 0.35
+    min_rotational_vel: 0.15
     rotational_acc_lim: 3.2
