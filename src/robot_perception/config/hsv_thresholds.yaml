@@ -1,0 +1,50 @@
+hsv_ranges:
+  red:
+  - lower:
+    - 165
+    - 60
+    - 40
+    upper:
+    - 180
+    - 255
+    - 255
+  - lower:
+    - 170
+    - 110
+    - 50
+    upper:
+    - 180
+    - 255
+    - 255
+  blue:
+  - lower:
+    - 95
+    - 110
+    - 50
+    upper:
+    - 130
+    - 255
+    - 255
+  green:
+  - lower:
+    - 40
+    - 90
+    - 50
+    upper:
+    - 85
+    - 255
+    - 255
+  yellow:
+  - lower:
+    - 18
+    - 110
+    - 60
+    upper:
+    - 35
+    - 255
+    - 255
+contour_filter:
+  min_area: 250
+  max_area: 25000
+  min_aspect: 0.55
+  max_aspect: 1.8
