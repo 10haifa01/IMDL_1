@@ -30,9 +30,12 @@ setup(
             'mission_coordinator_node = robot_brain.mission_coordinator_node:main',
             'pick_place_manager_node = robot_brain.pick_place_manager_node:main',
             'post_exploration_sweeper = robot_brain.post_exploration_sweeper:main',
-            'task_mission_base = robot_brain.task_mission_base:main',
+            'virtual_cube_detector = robot_brain.virtual_cube_detector:main',
             'task1_node = robot_brain.task1_node:main',
             'task2_node = robot_brain.task2_node:main',
+            'task3_node = robot_brain.task3_node:main',
+            'task4_node = robot_brain.task4_node:main',
+            'task5_node = robot_brain.task5_node:main',
         ],
     },
 )

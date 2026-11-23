@@ -3,7 +3,8 @@ import re
 from pathlib import Path
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, SetEnvironmentVariable
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -15,7 +16,14 @@ def generate_launch_description():
     pkg_robot_bringup = get_package_share_directory('robot_bringup')
     pkg_gazebo_ros = get_package_share_directory('gazebo_ros')
     pkg_create3_description = get_package_share_directory('irobot_create_description')
-    world_path = os.path.join(pkg_robot_bringup, 'worlds', 'maze.world')
+    declare_world = DeclareLaunchArgument(
+        'world',
+        default_value='maze.world',
+        description='World file name inside robot_bringup/worlds/'
+    )
+    world_path = PathJoinSubstitution([
+        pkg_robot_bringup, 'worlds', LaunchConfiguration('world')
+    ])
     xacro_file = os.path.join(pkg_robot_description, 'urdf', 'create3_sensors.urdf.xacro')
     
     # Robot description

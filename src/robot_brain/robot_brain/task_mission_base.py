@@ -159,6 +159,97 @@ class TaskMissionBase(Node):
         pose.pose.orientation = yaw_to_quaternion(face_yaw)
         return pose
 
+    def _is_segment_clear_on_map(
+        self, x1: float, y1: float, x2: float, y2: float, clearance: float = 0.06
+    ) -> bool:
+        """Checks that no occupied /map cell sits between a standoff pose and its target."""
+        if self.latest_map is None:
+            return True
+
+        mw = self.latest_map.info.width
+        mh = self.latest_map.info.height
+        mres = self.latest_map.info.resolution
+        mox = self.latest_map.info.origin.position.x
+        moy = self.latest_map.info.origin.position.y
+        mgrid = np.array(self.latest_map.data, dtype=np.int16).reshape((mh, mw))
+
+        dist = math.hypot(x2 - x1, y2 - y1)
+        steps = max(2, int(dist / (mres * 0.5)))
+        pad = max(1, int(round(clearance / mres)))
+
+        for i in range(1, steps):
+            t = i / float(steps)
+            px = x1 + t * (x2 - x1)
+            py = y1 + t * (y2 - y1)
+            gx = int((px - mox) / mres)
+            gy = int((py - moy) / mres)
+            if not (0 <= gx < mw and 0 <= gy < mh):
+                return False
+
+            x0 = max(0, gx - pad)
+            x1_idx = min(mw, gx + pad + 1)
+            y0 = max(0, gy - pad)
+            y1_idx = min(mh, gy + pad + 1)
+            if np.any(mgrid[y0:y1_idx, x0:x1_idx] > 50):
+                return False
+
+        return True
+
+    def compute_standoff_candidates(
+        self,
+        target_map_x: float,
+        target_map_y: float,
+        approach_from_map_x: float,
+        approach_from_map_y: float,
+        standoff_dist: float | None = None,
+        max_candidates: int = 4,
+    ) -> list[PoseStamped]:
+        """
+        Returns up to `max_candidates` collision-free (cost == 0) standoff poses
+        with an unobstructed line of sight to the target, sorted closest-first.
+        """
+        for _ in range(3):
+            rclpy.spin_once(self, timeout_sec=0.05)
+
+        dist = self.standoff_dist if standoff_dist is None else standoff_dist
+        scored_candidates: list[tuple[float, PoseStamped]] = []
+
+        for deg in range(0, 360, 10):
+            ang = math.radians(deg)
+            cx = target_map_x + dist * math.cos(ang)
+            cy = target_map_y + dist * math.sin(ang)
+
+            if not self._is_costmap_free(cx, cy):
+                continue
+            if not self._is_segment_clear_on_map(cx, cy, target_map_x, target_map_y):
+                continue
+
+            face_yaw = math.atan2(target_map_y - cy, target_map_x - cx)
+            pose = PoseStamped()
+            pose.header.frame_id = 'map'
+            pose.header.stamp = self.navigator.get_clock().now().to_msg()
+            pose.pose.position.x = cx
+            pose.pose.position.y = cy
+            pose.pose.orientation = yaw_to_quaternion(face_yaw)
+
+            travel_dist = math.hypot(cx - approach_from_map_x, cy - approach_from_map_y)
+            scored_candidates.append((travel_dist, pose))
+
+        scored_candidates.sort(key=lambda item: item[0])
+        candidates = [pose for _, pose in scored_candidates[:max_candidates]]
+
+        if not candidates:
+            candidates.append(
+                self.compute_standoff_pose(
+                    target_map_x,
+                    target_map_y,
+                    approach_from_map_x,
+                    approach_from_map_y,
+                    dist,
+                )
+            )
+        return candidates
+
     def _is_costmap_free(self, map_x: float, map_y: float) -> bool:
         if self.costmap is None:
             return True
