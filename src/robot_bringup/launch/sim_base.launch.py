@@ -74,10 +74,9 @@ def generate_launch_description():
         package='gazebo_ros',
         executable='spawn_entity.py',
         arguments=['-topic', 'robot_description', '-entity', 'create3_base',
-                   '-z', '0.05', '-timeout', '120'],
+                '-x', '-0.48', '-y', '0.48', '-z', '0.05', '-Y', '0.0', '-timeout', '120'],
         output='screen'
     )
-
     # Spawners for controllers
     diffdrive_spawner = Node(
         package='controller_manager',

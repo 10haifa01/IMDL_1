@@ -1,0 +1,26 @@
+/**:
+  ros__parameters:
+    use_sim_time: true
+
+    # Arena coordinates [x (m), y (m), yaw (rad)] with (0, 0, 0) at arena center.
+    # Chosen inside the 1.65m x 1.65m room (walls at +-0.825m) with >= 0.30m wall
+    # and obstacle clearance:
+    # - Point A: Top-left open quadrant, facing East (+X)
+    # - Point B: Bottom-right open quadrant, facing South (-Y) (diagonal passes both pillars)
+    # - Point C: Top-center near North wall, facing North (+Y) (routes past red pillar)
+    point_a: [-0.48, 0.48, 0.0]
+    point_b: [0.48, -0.48, -1.5708]
+    point_c: [0.00, 0.50, 1.5708]
+
+    # Task 5 required pickup sequence
+    task5_color_order: ["red", "green", "blue"]
+
+    # Standoff distance (m) in front of target/drop center for Tasks 3-5
+    standoff_distance: 0.32
+
+    # Simulated pause (seconds) in place of camera/arm execution
+    simulated_action_duration: 2.0
+
+    # Blind-spot / unclosed-obstacle sweeper settings for Tasks 4-5
+    blind_spot_min_cells: 4
+    blind_spot_standoff: 0.32

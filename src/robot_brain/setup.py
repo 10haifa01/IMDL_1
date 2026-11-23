@@ -1,3 +1,5 @@
+import os
+from glob import glob
 from setuptools import find_packages, setup
 
 package_name = 'robot_brain'
@@ -10,6 +12,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -27,6 +30,9 @@ setup(
             'mission_coordinator_node = robot_brain.mission_coordinator_node:main',
             'pick_place_manager_node = robot_brain.pick_place_manager_node:main',
             'post_exploration_sweeper = robot_brain.post_exploration_sweeper:main',
+            'task_mission_base = robot_brain.task_mission_base:main',
+            'task1_node = robot_brain.task1_node:main',
+            'task2_node = robot_brain.task2_node:main',
         ],
     },
 )
