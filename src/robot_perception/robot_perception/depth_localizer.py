@@ -1,141 +1,96 @@
-
+#!/usr/bin/env python3
 import math
-import time
 import numpy as np
 
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
-from sensor_msgs.msg import Image, CameraInfo
-from cv_bridge import CvBridge
+from sensor_msgs.msg import CameraInfo
+from geometry_msgs.msg import PoseStamped
+import tf2_ros
+import tf2_geometry_msgs
 
 
-def pixel_to_3d(u, v, depth, fx, fy, cx, cy):
-    """Convert pixel coordinates and depth to 3D coordinates."""
+class DepthLocalizer:  # Renamed from DepthReader; removed (Node) inheritance
 
-    if not math.isfinite(depth) or depth <= 0:
-        return None
+    def __init__(self, node: Node, block_size_m: float = 0.03):
+        self.node = node
+        self.block_size_m = block_size_m
 
-    X = (u - cx) * depth / fx
-    Y = (v - cy) * depth / fy
-    Z = depth
-
-    return X, Y, Z
-
-
-class DepthReader(Node):
-
-    def __init__(self):
-        super().__init__('depth_reader')
-
-        self.bridge = CvBridge()
-        self.last_print = 0.0
-
-        # Camera calibration parameters
+        # Camera calibration parameters (kept from teammate's code)
         self.fx = None
         self.fy = None
         self.cx = None
         self.cy = None
 
-        # Subscribe to camera calibration
-        self.info_sub = self.create_subscription(
-            CameraInfo,
-            '/camera/camera/color/camera_info',
-            self.info_callback,
-            qos_profile_sensor_data
-        )
+        # Added for transforming camera frame -> base_link
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self.node)
 
-        # Subscribe to aligned depth images
-        self.depth_sub = self.create_subscription(
-            Image,
-            '/camera/camera/aligned_depth_to_color/image_raw',
-            self.depth_callback,
-            qos_profile_sensor_data
-        )
-
-        self.get_logger().info(
-            "Waiting for CameraInfo and depth images..."
-        )
-
-    def info_callback(self, msg):
-        # Extract camera intrinsics from matrix K
-        self.fx = msg.k[0]
-        self.fy = msg.k[4]
-        self.cx = msg.k[2]
-        self.cy = msg.k[5]
-
-    def depth_callback(self, msg):
-
-        # Wait until calibration is received
+    def set_intrinsics(self, msg: CameraInfo):
+        """Added: called by ColorDetectorNode.info_cb"""
         if self.fx is None:
-            return
+            self.fx = msg.k[0]
+            self.fy = msg.k[4]
+            self.cx = msg.k[2]
+            self.cy = msg.k[5]
+            self.node.get_logger().info("Camera intrinsics loaded in DepthLocalizer.")
 
-        # Print every 2 seconds
-        if time.monotonic() - self.last_print < 2.0:
-            return
-
-        self.last_print = time.monotonic()
-
-        # Convert ROS image to NumPy array
-        depth_image = self.bridge.imgmsg_to_cv2(
-            msg, desired_encoding='passthrough'
-        )
+    def pixel_to_3d(self, u, v, depth_image, pixel_width=None, encoding='16UC1'):
+        """Teammate's patch + projection logic wrapped into a class method"""
+        if self.fx is None:
+            return None
 
         height, width = depth_image.shape[:2]
+        if not (0 <= u < width and 0 <= v < height):
+            return None
 
-       # Select a pixel away from the image center
-        u = width // 2 + 80
-        v = height // 2 - 40
-
-        # Extract a 5x5 region
-        patch = depth_image[v-2:v+3, u-2:u+3]
+        # Extract a 5x5 region (safe bounds)
+        patch = depth_image[max(0, v - 2):min(height, v + 3),
+                            max(0, u - 2):min(width, u + 3)]
 
         valid = patch[np.isfinite(patch) & (patch > 0)]
-
         if len(valid) == 0:
-            self.get_logger().info("No valid depth")
-            return
+            return None
 
         depth = float(np.median(valid))
 
         # Convert depth to meters
-        if msg.encoding == '16UC1':
+        if encoding == '16UC1':
             depth *= 0.001
-        elif msg.encoding != '32FC1':
-            self.get_logger().warn(
-                f"Unsupported encoding: {msg.encoding}"
+        elif encoding != '32FC1':
+            self.node.get_logger().warn(f"Unsupported encoding: {encoding}")
+            return None
+
+        if not math.isfinite(depth) or depth <= 0:
+            return None
+
+        X = (u - self.cx) * depth / self.fx
+        Y = (v - self.cy) * depth / self.fy
+        Z = depth
+
+        return X, Y, Z
+
+    def to_robot_frame(self, x, y, z, source_frame, stamp, target_frame='base_link'):
+        """Added: packages (X, Y, Z) into a PoseStamped and transforms to base_link"""
+        pose = PoseStamped()
+        pose.header.frame_id = source_frame
+        pose.header.stamp = stamp
+        pose.pose.position.x = float(x)
+        pose.pose.position.y = float(y)
+        pose.pose.position.z = float(z)
+        pose.pose.orientation.w = 1.0
+
+        if not target_frame or target_frame == source_frame:
+            return pose
+
+        try:
+            transform = self.tf_buffer.lookup_transform(
+                target_frame,
+                source_frame,
+                rclpy.time.Time(),
+                timeout=rclpy.duration.Duration(seconds=0.05)
             )
-            return
-
-        # Calculate 3D position
-        position = pixel_to_3d(
-            u, v, depth,
-            self.fx, self.fy, self.cx, self.cy
-        )
-
-        if position is not None:
-            X, Y, Z = position
-
-            self.get_logger().info(
-                f"Pixel ({u}, {v}) | "
-                f"X={X:.3f} m, "
-                f"Y={Y:.3f} m, "
-                f"Z={Z:.3f} m"
-            )
-
-
-def main(args=None):
-    rclpy.init(args=args)
-    node = DepthReader()
-
-    try:
-        rclpy.spin(node)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        node.destroy_node()
-        rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()
+            return tf2_geometry_msgs.do_transform_pose_stamped(pose, transform)
+        except Exception:
+            # Falls back to camera_color_optical_frame until URDF camera TF is added
+            return pose
