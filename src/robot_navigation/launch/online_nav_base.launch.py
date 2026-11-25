@@ -21,6 +21,7 @@ def generate_launch_description():
 
     use_sim_time = LaunchConfiguration('use_sim_time')
     use_rviz = LaunchConfiguration('use_rviz')
+    cmd_vel_target = LaunchConfiguration('cmd_vel_target')
     slam_params_file = LaunchConfiguration('slam_params_file')
     nav2_params_file = LaunchConfiguration('nav2_params_file')
 
@@ -29,6 +30,9 @@ def generate_launch_description():
     )
     declare_use_rviz = DeclareLaunchArgument(
         'use_rviz', default_value='true'
+    )
+    declare_cmd_vel_target = DeclareLaunchArgument(
+        'cmd_vel_target', default_value='/diffdrive_controller/cmd_vel_unstamped'
     )
     declare_slam_params = DeclareLaunchArgument(
         'slam_params_file', default_value=default_slam_params
@@ -63,7 +67,7 @@ def generate_launch_description():
         package='topic_tools',
         executable='relay',
         name='cmd_vel_relay',
-        arguments=['/cmd_vel', '/diffdrive_controller/cmd_vel_unstamped'],
+        arguments=['/cmd_vel', cmd_vel_target],
         output='screen',
     )
 
@@ -83,6 +87,7 @@ def generate_launch_description():
     return LaunchDescription([
         declare_use_sim_time,
         declare_use_rviz,
+        declare_cmd_vel_target,
         declare_slam_params,
         declare_nav2_params,
         slam_toolbox_node,

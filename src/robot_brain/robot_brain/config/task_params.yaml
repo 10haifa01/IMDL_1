@@ -2,10 +2,11 @@
   ros__parameters:
     use_sim_time: true
 
-    # Arena coordinates [x (m), y (m), yaw (rad)] with (0, 0, 0) at arena center.
-    point_a: [-0.48, 0.48, 0.0]
-    point_b: [0.48, -0.48, -1.5708]
-    point_c: [0.00, 0.50, 1.5708]
+    # Arena coordinates [x (m), y (m), yaw (rad)] with (0, 0, 0) at arena center
+    # (ROS standard: 0 rad = +X, pi/2 = +Y, pi = -X, -pi/2 = -Y)
+    point_a: [0.50, 0.50, 3.1416]
+    point_b: [-0.50, -0.50, -1.5708]
+    point_c: [0.50, -0.50, 0.0]
 
     # Task 5 required pickup sequence
     task5_color_order: ["red", "green", "blue"]

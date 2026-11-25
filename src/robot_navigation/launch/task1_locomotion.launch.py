@@ -14,21 +14,50 @@ def generate_launch_description():
     default_task_params = os.path.join(
         pkg_robot_brain, 'config', 'task_params.yaml'
     )
+    default_slam_params = os.path.join(
+        pkg_robot_navigation, 'config', 'slam_params_mapping.yaml'
+    )
+    default_nav2_params = os.path.join(
+        pkg_robot_navigation, 'config', 'nav2_params.yaml'
+    )
+
     task_params_file = LaunchConfiguration('task_params_file')
+    use_sim_time = LaunchConfiguration('use_sim_time')
     use_rviz = LaunchConfiguration('use_rviz')
+    cmd_vel_target = LaunchConfiguration('cmd_vel_target')
+    slam_params_file = LaunchConfiguration('slam_params_file')
+    nav2_params_file = LaunchConfiguration('nav2_params_file')
 
     declare_task_params = DeclareLaunchArgument(
         'task_params_file', default_value=default_task_params
     )
+    declare_use_sim_time = DeclareLaunchArgument(
+        'use_sim_time', default_value='true'
+    )
     declare_use_rviz = DeclareLaunchArgument(
         'use_rviz', default_value='true'
+    )
+    declare_cmd_vel_target = DeclareLaunchArgument(
+        'cmd_vel_target', default_value='/diffdrive_controller/cmd_vel_unstamped'
+    )
+    declare_slam_params = DeclareLaunchArgument(
+        'slam_params_file', default_value=default_slam_params
+    )
+    declare_nav2_params = DeclareLaunchArgument(
+        'nav2_params_file', default_value=default_nav2_params
     )
 
     base_nav_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_robot_navigation, 'launch', 'online_nav_base.launch.py')
         ),
-        launch_arguments={'use_rviz': use_rviz}.items(),
+        launch_arguments={
+            'use_sim_time': use_sim_time,
+            'use_rviz': use_rviz,
+            'cmd_vel_target': cmd_vel_target,
+            'slam_params_file': slam_params_file,
+            'nav2_params_file': nav2_params_file,
+        }.items(),
     )
 
     task1_node = Node(
@@ -36,12 +65,19 @@ def generate_launch_description():
         executable='task1_node',
         name='task1_node',
         output='screen',
-        parameters=[task_params_file],
+        parameters=[
+            task_params_file,
+            {'use_sim_time': use_sim_time},
+        ],
     )
 
     return LaunchDescription([
         declare_task_params,
+        declare_use_sim_time,
         declare_use_rviz,
+        declare_cmd_vel_target,
+        declare_slam_params,
+        declare_nav2_params,
         base_nav_launch,
         task1_node,
     ])
