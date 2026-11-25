@@ -1,80 +1,141 @@
-#!/usr/bin/env python3
+
+import math
+import time
 import numpy as np
+
+import rclpy
 from rclpy.node import Node
-from rclpy.time import Time
-from sensor_msgs.msg import CameraInfo
-from geometry_msgs.msg import PointStamped, PoseStamped
-import tf2_ros
-import tf2_geometry_msgs  # Required for transforming PointStamped/PoseStamped
+from rclpy.qos import qos_profile_sensor_data
+from sensor_msgs.msg import Image, CameraInfo
+from cv_bridge import CvBridge
 
 
-class DepthLocalizer:
-    """
-    Converts 2D pixel detections + aligned depth frames into 3D coordinates
-    and transforms them into the robot/map frame.
-    """
+def pixel_to_3d(u, v, depth, fx, fy, cx, cy):
+    """Convert pixel coordinates and depth to 3D coordinates."""
 
-    def __init__(self, node: Node, block_size_m: float = 0.03):
-        self.node = node
-        self.block_size_m = block_size_m  # 3cm x 3cm cubes
-        self.intrinsics = None  # Will store (fx, fy, cx, cy)
-
-        # TF2 listener for converting camera_color_optical_frame -> base_link / map
-        self.tf_buffer = tf2_ros.Buffer()
-        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self.node)
-
-    def set_intrinsics(self, msg: CameraInfo) -> None:
-        """Extracts focal lengths and optical center from CameraInfo."""
-        if self.intrinsics is None:
-            # K = [fx, 0, cx, 0, fy, cy, 0, 0, 1]
-            self.intrinsics = (msg.k[0], msg.k[4], msg.k[2], msg.k[5])
-            self.node.get_logger().info("Camera intrinsics loaded in DepthLocalizer.")
-
-    def is_ready(self) -> bool:
-        """Returns True once CameraInfo has been received."""
-        return self.intrinsics is not None
-
-    def pixel_to_3d(self, u: int, v: int, depth_image: np.ndarray, pixel_width: int = None):
-        """
-        Projects a 2D pixel (u, v) to 3D (X, Y, Z) in meters in camera_color_optical_frame.
-        
-        Args:
-            u: Horizontal pixel coordinate (center of bounding box)
-            v: Vertical pixel coordinate (center of bounding box)
-            depth_image: 2D numpy array (16UC1, values in millimeters)
-            pixel_width: Optional bounding box width in pixels to validate 3cm physical size
-
-        Returns:
-            tuple (X, Y, Z) in meters, or None if depth is invalid or size check fails.
-        """
-        if not self.is_ready():
-            return None
-
-        # TODO:
-        # 1. Sample a 3x3 patch around (u, v) in depth_image, filter out 0s, take median, convert mm -> m.
-        # 2. Check valid D455 depth range (e.g., 0.35m <= Z <= 2.5m).
-        # 3. If pixel_width is given, verify physical width: (pixel_width * Z / fx) ~= 0.03m.
-        # 4. Compute X = (u - cx) * Z / fx, Y = (v - cy) * Z / fy.
+    if not math.isfinite(depth) or depth <= 0:
         return None
 
-    def to_robot_frame(self, x: float, y: float, z: float, source_frame: str,
-                       stamp, target_frame: str = 'base_link') -> PoseStamped | None:
-        """
-        Transforms 3D coordinates from source_frame (e.g., camera_color_optical_frame)
-        into target_frame (e.g., 'base_link' or 'map').
-        """
-        pose = PoseStamped()
-        pose.header.frame_id = source_frame
-        pose.header.stamp = stamp
-        pose.pose.position.x = float(x)
-        pose.pose.position.y = float(y)
-        pose.pose.position.z = float(z)
-        pose.pose.orientation.w = 1.0  # Default neutral orientation
+    X = (u - cx) * depth / fx
+    Y = (v - cy) * depth / fy
+    Z = depth
 
-        if target_frame == source_frame:
-            return pose
+    return X, Y, Z
 
-        # TODO:
-        # Use self.tf_buffer.transform(point_stamped, target_frame) with a try/except fallback
-        # so it doesn't crash before the URDF camera transform is added.
-        return pose
+
+class DepthReader(Node):
+
+    def __init__(self):
+        super().__init__('depth_reader')
+
+        self.bridge = CvBridge()
+        self.last_print = 0.0
+
+        # Camera calibration parameters
+        self.fx = None
+        self.fy = None
+        self.cx = None
+        self.cy = None
+
+        # Subscribe to camera calibration
+        self.info_sub = self.create_subscription(
+            CameraInfo,
+            '/camera/camera/color/camera_info',
+            self.info_callback,
+            qos_profile_sensor_data
+        )
+
+        # Subscribe to aligned depth images
+        self.depth_sub = self.create_subscription(
+            Image,
+            '/camera/camera/aligned_depth_to_color/image_raw',
+            self.depth_callback,
+            qos_profile_sensor_data
+        )
+
+        self.get_logger().info(
+            "Waiting for CameraInfo and depth images..."
+        )
+
+    def info_callback(self, msg):
+        # Extract camera intrinsics from matrix K
+        self.fx = msg.k[0]
+        self.fy = msg.k[4]
+        self.cx = msg.k[2]
+        self.cy = msg.k[5]
+
+    def depth_callback(self, msg):
+
+        # Wait until calibration is received
+        if self.fx is None:
+            return
+
+        # Print every 2 seconds
+        if time.monotonic() - self.last_print < 2.0:
+            return
+
+        self.last_print = time.monotonic()
+
+        # Convert ROS image to NumPy array
+        depth_image = self.bridge.imgmsg_to_cv2(
+            msg, desired_encoding='passthrough'
+        )
+
+        height, width = depth_image.shape[:2]
+
+       # Select a pixel away from the image center
+        u = width // 2 + 80
+        v = height // 2 - 40
+
+        # Extract a 5x5 region
+        patch = depth_image[v-2:v+3, u-2:u+3]
+
+        valid = patch[np.isfinite(patch) & (patch > 0)]
+
+        if len(valid) == 0:
+            self.get_logger().info("No valid depth")
+            return
+
+        depth = float(np.median(valid))
+
+        # Convert depth to meters
+        if msg.encoding == '16UC1':
+            depth *= 0.001
+        elif msg.encoding != '32FC1':
+            self.get_logger().warn(
+                f"Unsupported encoding: {msg.encoding}"
+            )
+            return
+
+        # Calculate 3D position
+        position = pixel_to_3d(
+            u, v, depth,
+            self.fx, self.fy, self.cx, self.cy
+        )
+
+        if position is not None:
+            X, Y, Z = position
+
+            self.get_logger().info(
+                f"Pixel ({u}, {v}) | "
+                f"X={X:.3f} m, "
+                f"Y={Y:.3f} m, "
+                f"Z={Z:.3f} m"
+            )
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = DepthReader()
+
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
