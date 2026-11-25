@@ -29,9 +29,9 @@ class TaskMissionBase(Node):
     def __init__(self, node_name: str):
         super().__init__(node_name)
 
-        self.declare_parameter('point_a', [-0.48, 0.48, 0.0])
-        self.declare_parameter('point_b', [0.48, -0.48, -1.5708])
-        self.declare_parameter('point_c', [0.00, 0.50, 1.5708])
+        self.declare_parameter('point_a', [0.50, 0.50, 3.1416])
+        self.declare_parameter('point_b', [-0.50, -0.50, -1.5708])
+        self.declare_parameter('point_c', [0.50, -0.50, 0.0])
         self.declare_parameter('task5_color_order', ['red', 'green', 'blue'])
         self.declare_parameter('standoff_distance', 0.32)
         self.declare_parameter('simulated_action_duration', 2.0)
